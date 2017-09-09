@@ -1,0 +1,19 @@
+{
+  "name": "face-recognition",
+  "version": "1.0.0",
+  "description": "medhacks2017",
+  "main": "face-recognition.js",
+  "dependencies": {
+    "cognitive-services": "^0.1.2",
+    "goproh4": "^0.4.2",
+    "node-mscs-face": "^0.1.1",
+    "node-webcam": "^0.4.3",
+    "request": "^2.81.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
