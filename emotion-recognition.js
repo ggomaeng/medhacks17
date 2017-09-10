@@ -1,73 +1,110 @@
-const API_KEY = require('./env');
+const ENV = require('./.env');
 const fs = require('fs');
 const EmotionApi = require('./emotionWrapper');
+const firebase = require('firebase');
+const moment = require('moment');
 
-var GoPro = require('goproh4');
+var cv = require('opencv');
 
-var cam = new GoPro.Camera();
-// Set camera mode
-cam.mode(GoPro.Settings.Modes.Video, GoPro.Settings.Submodes.Video.Video)
+firebase.initializeApp(ENV.FIREBASE);
 
-// Set camera resolution
-.then(function () {
-    return cam.set(GoPro.Settings.VIDEO_RESOLUTION, GoPro.Settings.VideoResolution.R1080S)
-})
+try {
+  var camera = new cv.VideoCapture(0);
+  camera.setWidth(144);
+  camera.setHeight(176);
 
-// Set camera framerate
-.then(function () {
-    return cam.set(GoPro.Settings.VIDEO_FPS, GoPro.Settings.VideoFPS.F60)
-})
+  var window = new cv.NamedWindow('Video', 0);
+  // face detection properties
+  var rectColor = [0, 255, 0];
+  var rectThickness = 2;
 
-// Begin recording
-.then(function () {
-    console.log('[video]', 'started')
-    return cam.start()
-})
+  setInterval(function () {
+    camera
+      .read(function (err, im) {
+        if (err) 
+          throw err;
+        console.log(im.size())
+        if (im.size()[0] > 0 && im.size()[1] > 0) {
+          im
+            .detectObject(cv.FACE_CASCADE, {}, function (err, faces) {
+              if (err) 
+                throw err;
+              
+              if (faces.length > 0) {
+                var buff = im.toBuffer();
+                recognizeEmotionImage(buff);
+              }
+
+              for (var i = 0; i < faces.length; i++) {
+                face = faces[i];
+                im.rectangle([
+                  face.x, face.y
+                ], [
+                  face.width, face.height
+                ], rectColor, rectThickness);
+              }
+              window.show(im);
+            });
+        }
+        window.blockingWaitKey(0, 50);
+      });
+  }, 3000);
+} catch (e) {
+  console.log("Couldn't start camera:", e)
+}
+
 //constructor
-const emotionApi = new EmotionApi(API_KEY.EMOTION_API, "WUS");
+const emotionApi = new EmotionApi(ENV.EMOTION_API, "WUS");
 
 // Webcam.capture("test_pic", function(err, data) { console.log(err);
-// console.log(data); });
-
-// fs.readFile('./mark.jpg', function (err, data) {     var encodedImage = new
-// Buffer(data, 'binary').toString('base64');
+// console.log(data); }); fs.readFile('./mark.jpg', function (err, data) { var
+// encodedImage = new Buffer(data, 'binary').toString('base64');
 // recognizeEmotionImage(encodedImage); })
-// recognizeEmotionURL('https://upload.wikimedia.org/wikipedia/commons/f/fe/Mark_
-// Zuckerberg_em_setembro_de_2014.jpg');
+// recognizeEmotionURL('https://upload.wikimedia.org/wikipedia/commons/f/fe/Mark
+// _ Zuckerberg_em_setembro_de_2014.jpg');
 
 function recognizeEmotionURL(url) {
-    emotionApi
-        .recognizeURL(url)
-        .then((faceInfo) => {
-            // Resolves faceInfo, an array
-            console.log(faceInfo);
-        })
-        .catch((err) => {
-            // If no faces are detected, an error will be returned An error can occur too if
-            // an incorrect/invalid Face API subscription key or any other incorrect
-            // parameters is provided. For more information on the kind of errors that
-            // Microsoft's Face API returns, please refer to
-            // https://westus.dev.cognitive.microsoft.com/docs/services/563879b61984550e40cb
-            // b e8d/operations/563879b61984550f30395236
-            console.log(err);
-        });
+  emotionApi
+    .recognizeURL(url)
+    .then((faceInfo) => {
+      // Resolves faceInfo, an array
+      console.log(faceInfo);
+    })
+    .catch((err) => {
+      // If no faces are detected, an error will be returned An error can occur too if
+      // an incorrect/invalid Face API subscription key or any other incorrect
+      // parameters is provided. For more information on the kind of errors that
+      // Microsoft's Face API returns, please refer to
+      // https://westus.dev.cognitive.microsoft.com/docs/services/563879b61984550e40cb
+      // b e8d/operations/563879b61984550f30395236
+      console.log(err);
+    });
 
 }
 
 function recognizeEmotionImage(image) {
-    emotionApi
-        .recognizeImage(image)
-        .then((faceInfo) => {
-            // Resolves faceInfo, an array
-            console.log(faceInfo);
-        })
-        .catch((err) => {
-            // If no faces are detected, an error will be returned An error can occur too if
-            // an incorrect/invalid Face API subscription key or any other incorrect
-            // parameters is provided. For more information on the kind of errors that
-            // Microsoft's Face API returns, please refer to
-            // https://westus.dev.cognitive.microsoft.com/docs/services/563879b61984550e40cb
-            // b e8d/operations/563879b61984550f30395236
-            console.log(err);
-        });
+  emotionApi
+    .recognizeImage(image)
+    .then((faceInfo) => {
+      // Resolves faceInfo, an array
+      console.log(faceInfo);
+      if (faceInfo && faceInfo[0] && faceInfo[0].scores) {
+        let score = faceInfo[0].scores;
+        score.timestamp = moment().format();
+
+        firebase
+          .database()
+          .ref(`feelings/${moment().format('dddd, MMMM Do YYYY')}`)
+          .push(score);
+      }
+    })
+    .catch((err) => {
+      // If no faces are detected, an error will be returned An error can occur too if
+      // an incorrect/invalid Face API subscription key or any other incorrect
+      // parameters is provided. For more information on the kind of errors that
+      // Microsoft's Face API returns, please refer to
+      // https://westus.dev.cognitive.microsoft.com/docs/services/563879b61984550e40cb
+      // b e8d/operations/563879b61984550f30395236
+      console.log(err);
+    });
 }

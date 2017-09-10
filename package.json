@@ -5,9 +5,12 @@
   "main": "face-recognition.js",
   "dependencies": {
     "cognitive-services": "^0.1.2",
+    "firebase": "^4.3.1",
     "goproh4": "^0.4.2",
+    "moment": "^2.18.1",
     "node-mscs-face": "^0.1.1",
     "node-webcam": "^0.4.3",
+    "opencv": "^6.0.0",
     "request": "^2.81.0"
   },
   "devDependencies": {},
