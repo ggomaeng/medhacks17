@@ -51,7 +51,9 @@ function init() {
     }, 3000);
   } catch (e) {
     console.log("Couldn't start camera:", e);
-    init();
+    setTimeout(function() {
+      init();
+    }, 1000);
   }
 }
 
