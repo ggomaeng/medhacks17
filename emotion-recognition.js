@@ -1,56 +1,58 @@
-const ENV = require('./.env');
-const fs = require('fs');
-const EmotionApi = require('./emotionWrapper');
-const firebase = require('firebase');
-const moment = require('moment');
+const ENV = require("./.env");
+const fs = require("fs");
+const EmotionApi = require("./emotionWrapper");
+const firebase = require("firebase");
+const moment = require("moment");
 
-var cv = require('opencv');
+var cv = require("opencv");
 
 firebase.initializeApp(ENV.FIREBASE);
 
-try {
-  var camera = new cv.VideoCapture(0);
-  camera.setWidth(144);
-  camera.setHeight(176);
+init();
 
-  var window = new cv.NamedWindow('Video', 0);
-  // face detection properties
-  var rectColor = [0, 255, 0];
-  var rectThickness = 2;
+function init() {
+  try {
+    var camera = new cv.VideoCapture(0);
+    camera.setWidth(144);
+    camera.setHeight(176);
 
-  setInterval(function () {
-    camera
-      .read(function (err, im) {
-        if (err) 
-          throw err;
-        console.log(im.size())
+    var window = new cv.NamedWindow("Video", 0);
+    // face detection properties
+    var rectColor = [0, 255, 0];
+    var rectThickness = 2;
+
+    setInterval(function() {
+      camera.read(function(err, im) {
+        if (err) throw err;
+        console.log(im.size());
         if (im.size()[0] > 0 && im.size()[1] > 0) {
-          im
-            .detectObject(cv.FACE_CASCADE, {}, function (err, faces) {
-              if (err) 
-                throw err;
-              
-              if (faces.length > 0) {
-                var buff = im.toBuffer();
-                recognizeEmotionImage(buff);
-              }
+          im.detectObject(cv.FACE_CASCADE, {}, function(err, faces) {
+            if (err) throw err;
 
-              for (var i = 0; i < faces.length; i++) {
-                face = faces[i];
-                im.rectangle([
-                  face.x, face.y
-                ], [
-                  face.width, face.height
-                ], rectColor, rectThickness);
-              }
-              window.show(im);
-            });
+            if (faces.length > 0) {
+              var buff = im.toBuffer();
+              recognizeEmotionImage(buff);
+            }
+
+            for (var i = 0; i < faces.length; i++) {
+              face = faces[i];
+              im.rectangle(
+                [face.x, face.y],
+                [face.width, face.height],
+                rectColor,
+                rectThickness
+              );
+            }
+            window.show(im);
+          });
         }
         window.blockingWaitKey(0, 50);
       });
-  }, 3000);
-} catch (e) {
-  console.log("Couldn't start camera:", e)
+    }, 3000);
+  } catch (e) {
+    console.log("Couldn't start camera:", e);
+    init();
+  }
 }
 
 //constructor
@@ -66,11 +68,11 @@ const emotionApi = new EmotionApi(ENV.EMOTION_API, "WUS");
 function recognizeEmotionURL(url) {
   emotionApi
     .recognizeURL(url)
-    .then((faceInfo) => {
+    .then(faceInfo => {
       // Resolves faceInfo, an array
       console.log(faceInfo);
     })
-    .catch((err) => {
+    .catch(err => {
       // If no faces are detected, an error will be returned An error can occur too if
       // an incorrect/invalid Face API subscription key or any other incorrect
       // parameters is provided. For more information on the kind of errors that
@@ -79,13 +81,12 @@ function recognizeEmotionURL(url) {
       // b e8d/operations/563879b61984550f30395236
       console.log(err);
     });
-
 }
 
 function recognizeEmotionImage(image) {
   emotionApi
     .recognizeImage(image)
-    .then((faceInfo) => {
+    .then(faceInfo => {
       // Resolves faceInfo, an array
       console.log(faceInfo);
       if (faceInfo && faceInfo[0] && faceInfo[0].scores) {
@@ -94,11 +95,11 @@ function recognizeEmotionImage(image) {
 
         firebase
           .database()
-          .ref(`feelings/${moment().format('dddd, MMMM Do YYYY')}`)
+          .ref(`feelings/${moment().format("dddd, MMMM Do YYYY")}`)
           .push(score);
       }
     })
-    .catch((err) => {
+    .catch(err => {
       // If no faces are detected, an error will be returned An error can occur too if
       // an incorrect/invalid Face API subscription key or any other incorrect
       // parameters is provided. For more information on the kind of errors that
