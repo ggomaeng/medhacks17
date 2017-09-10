@@ -3,12 +3,30 @@ const fs = require("fs");
 const EmotionApi = require("./emotionWrapper");
 const firebase = require("firebase");
 const moment = require("moment");
+var express = require('express');
+var path = require('path');
+var app = express();
+app.use('/', express.static(__dirname + '/'));
 
 var cv = require("opencv");
 
 firebase.initializeApp(ENV.FIREBASE);
 
 init();
+
+
+app.get('/', function (req, res) {
+  // res.send('Hello World');
+  res.sendFile(path.join(__dirname + '/index.html'));
+})
+
+var server = app.listen(8081, function () {
+  var host = server.address().address
+  var port = server.address().port
+  
+  console.log("Example app listening at http://%s:%s", host, port)
+})
+
 
 function init() {
   try {

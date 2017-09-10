@@ -1,0 +1,221 @@
+<!doctype html>
+<html>
+
+<head>
+	<title>Line Chart</title>
+	<script src="./node_modules/chart.js/dist/Chart.bundle.js"></script>
+	<script src="./utils.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/4.1.1/firebase.js"></script>
+	<script src="./node_modules/moment/moment.js"></script>
+	<script>
+		// Initialize Firebase
+		// TODO: Replace with your project's customized code snippet
+		var config = {
+			apiKey: "AIzaSyCN-qoFr3Hrw20mU4wxiRQmRcTPGDFAYPc",
+			authDomain: "medhacks2017-b5d81.firebaseapp.com",
+			databaseURL: "https://medhacks2017-b5d81.firebaseio.com",
+			projectId: "medhacks2017-b5d81",
+			storageBucket: "medhacks2017-b5d81.appspot.com",
+			messagingSenderId: "646098283900"
+		};
+		firebase.initializeApp(config);
+	</script>
+	<style>
+		canvas {
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+	</style>
+</head>
+
+<body>
+	<div style="width:100%;">
+		<canvas id="canvas"></canvas>
+	</div>
+	<br>
+	<br>
+	<!-- <button id="randomizeData">Randomize Data</button> -->
+	<!-- <button id="addDataset">Add Dataset</button> -->
+	<!-- <button id="removeDataset">Remove Dataset</button> -->
+	<!-- <button id="addData">Add Data</button> -->
+	<button id="removeData">Remove Data</button>
+	<script>
+		// var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+		var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+		var config = {
+			type: 'line',
+			data: {
+				labels: [],
+				datasets: [{
+					label: "Happy 😄",
+					borderColor: window.chartColors.white,
+					backgroundColor: window.chartColors.happiness,
+					data: [
+
+					],
+				}, {
+					label: "Sad 😢",
+					borderColor: window.chartColors.white,
+					backgroundColor: window.chartColors.sadness,
+					data: [
+
+					],
+				}, {
+					label: "Angry 😡",
+					borderColor: window.chartColors.white,
+					backgroundColor: window.chartColors.anger,
+					data: [
+
+					],
+				},
+				{
+					label: "Neutral 😯",
+					borderColor: window.chartColors.white,
+					backgroundColor: window.chartColors.neutral,
+					data: [
+
+					],
+				},
+				{
+					label: "Surprise 😯",
+					borderColor: window.chartColors.white,
+					backgroundColor: window.chartColors.surprise,
+					data: [
+
+					],
+				}, {
+					label: "Fear 😨",
+					borderColor: window.chartColors.white,
+					backgroundColor: window.chartColors.fear,
+					data: [
+
+					],
+				}, {
+					label: "Disgust 😷",
+					borderColor: window.chartColors.white,
+					backgroundColor: window.chartColors.disgust,
+					data: [
+
+					],
+				}, {
+					label: "Contempt 😥",
+					borderColor: window.chartColors.white,
+					backgroundColor: window.chartColors.contempt,
+					data: [
+
+					],
+				}]
+			},
+			options: {
+				responsive: true,
+				title: {
+					display: true,
+					text: "Patient Psychological Health Chart"
+				},
+				tooltips: {
+					mode: 'index',
+				},
+				hover: {
+					mode: 'index'
+				},
+				scales: {
+					xAxes: [{
+						scaleLabel: {
+							display: true,
+							labelString: 'Timestamp'
+						}
+					}],
+					yAxes: [{
+						stacked: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'Value'
+						}
+					}]
+				}
+			}
+		};
+		window.onload = function () {
+			var ctx = document.getElementById("canvas").getContext("2d");
+			const time = moment().format('dddd, MMMM Do YYYY');
+			window.myLine = new Chart(ctx, config);
+
+			firebase.database().ref(`feelings/${time}`).on('child_added', function (snapshot) {
+				const obj = snapshot.val();
+				if (obj) {
+					const { anger, contempt, disgust, fear,
+						happiness, neutral, sadness, surprise, timestamp } = obj;
+
+					config.data.datasets[0].data.push(happiness);
+					config.data.datasets[1].data.push(sadness);
+					config.data.datasets[2].data.push(anger);
+					config.data.datasets[3].data.push(neutral);
+					config.data.datasets[4].data.push(surprise);
+					config.data.datasets[5].data.push(fear);
+					config.data.datasets[6].data.push(disgust);
+					config.data.datasets[7].data.push(contempt);
+					config.data.labels.push(timestamp);
+					window.myLine.update();
+
+				} else {
+					config.data.labels = []; // remove the label first
+					config.data.datasets.forEach(function (dataset, datasetIndex) {
+						dataset.data = [];
+					});
+
+					window.myLine.update();
+				}
+			})
+		};
+		// document.getElementById('randomizeData').addEventListener('click', function () {
+		// 	config.data.datasets.forEach(function (dataset) {
+		// 		dataset.data = dataset.data.map(function () {
+		// 			return randomScalingFactor();
+		// 		});
+		// 	});
+		// 	window.myLine.update();
+		// });
+		// var colorNames = Object.keys(window.chartColors);
+		// document.getElementById('addDataset').addEventListener('click', function () {
+		// 	var colorName = colorNames[config.data.datasets.length % colorNames.length];
+		// 	var newColor = window.chartColors[colorName];
+		// 	var newDataset = {
+		// 		label: 'Dataset ' + config.data.datasets.length,
+		// 		borderColor: newColor,
+		// 		backgroundColor: newColor,
+		// 		data: [],
+		// 	};
+		// 	for (var index = 0; index < config.data.labels.length; ++index) {
+		// 		newDataset.data.push(randomScalingFactor());
+		// 	}
+		// 	config.data.datasets.push(newDataset);
+		// 	window.myLine.update();
+		// });
+		// document.getElementById('addData').addEventListener('click', function () {
+		// 	if (config.data.datasets.length > 0) {
+		// 		var month = MONTHS[config.data.labels.length % MONTHS.length];
+		// 		config.data.labels.push(month);
+		// 		config.data.datasets.forEach(function (dataset) {
+		// 			dataset.data.push(randomScalingFactor());
+		// 		});
+
+		// 	}
+		// });
+		// document.getElementById('removeDataset').addEventListener('click', function () {
+		// 	config.data.datasets.splice(0, 1);
+		// 	window.myLine.update();
+		// });
+		document.getElementById('removeData').addEventListener('click', function () {
+			firebase.database().ref('feelings').set(null);
+			config.data.labels = []; // remove the label first
+			config.data.datasets.forEach(function (dataset, datasetIndex) {
+				dataset.data = [];
+			});
+
+			window.myLine.update();
+		});
+	</script>
+</body>
+
+</html>
