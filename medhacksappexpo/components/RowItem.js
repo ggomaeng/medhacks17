@@ -5,6 +5,7 @@ import {
     Modal,
     ActivityIndicator,
     Dimensions,
+    Share,
     Text,
     TouchableOpacity,
     StyleSheet,
@@ -202,13 +203,16 @@ export default class RowItem extends Component {
                     <View
                         style={{
                         flex: 1,
-                        justifyContent: 'center',
-                        alignItems: 'center',
                         backgroundColor: 'rgba(0, 0, 0, .6)'
                     }}>
+                    <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <TouchableOpacity onPress={() => Share.share({title: 'Patient Health Chart', message: 'Remind me to chekc on this patient @ ...', url:'https://www.dropbox.com/s/9d64g9gcywuqpmf/Psychological%20.pdf?dl=0&raw=true'})}>
+                            <Ionicons name='ios-share-outline' color='white' size={32} style={{margin: 16}} />
+                        </TouchableOpacity>
                         <TouchableOpacity onPress={() => this.setState({webviewload: false, loading: false})}>
                             <Ionicons name='ios-close' color='white' size={40} style={{margin: 16}} />
                         </TouchableOpacity>
+                    </View>
                         {this.renderWebView()}
                     </View>
                 </Modal>
