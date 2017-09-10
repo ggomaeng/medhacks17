@@ -12,7 +12,7 @@ init();
 
 function init() {
   try {
-    var camera = new cv.VideoCapture(0);
+    var camera = new cv.VideoCapture(1);
     camera.setWidth(144);
     camera.setHeight(176);
 
