@@ -7,17 +7,23 @@ import {
     TouchableOpacity
 } from 'react-native';
 
+import { NavigationActions } from 'react-navigation';
+
 const {width, height} = Dimensions.get('window');
 
 export default class TileView extends Component {
     render() {
-        const {backgroundColor, text, emoji} = this.props;
+        const {backgroundColor, text, emoji, value} = this.props;
+
+        const numb = (value * 100).toFixed(3);
+        const numbText = !isNaN(numb) ? numb : (0).toFixed(3);
+            
         return (
             <TouchableOpacity style={[styles.container]}>
                 <View style={[styles.innerContainer, {backgroundColor}]}>
                     <Text style={{fontSize: 100, position: 'absolute', right: -10, opacity: 0.75, bottom: 0, backgroundColor: 'transparent'}}>{emoji}</Text>
                     <Text style={styles.titleText}>{text}</Text>
-                    <Text style={styles.percentText}>84.23%</Text>
+                    <Text style={styles.percentText}>{numbText}%</Text>
                 </View>
             </TouchableOpacity>
         )

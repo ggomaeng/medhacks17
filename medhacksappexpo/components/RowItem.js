@@ -1,8 +1,19 @@
 import React, {Component} from 'react';
-import {View, Dimensions, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {
+    View,
+    Image,
+    Modal,
+    ActivityIndicator,
+    Dimensions,
+    Text,
+    TouchableOpacity,
+    StyleSheet,
+    WebView
+} from 'react-native';
 import Colors from '../constants/Colors';
 import * as moment from 'moment';
 import {Ionicons} from '@expo/vector-icons'
+import TimerMixin from 'react-timer-mixin';
 
 import * as Animatable from 'react-native-animatable';
 
@@ -21,8 +32,12 @@ const EMOJIS = [
 ];
 
 export default class RowItem extends Component {
+    mixins = [TimerMixin]
     state = {
-        collapsed: true
+        collapsed: true,
+        loading: false,
+        activity: false,
+        webviewload: false
     }
 
     renderViews() {
@@ -48,7 +63,7 @@ export default class RowItem extends Component {
             .keys(data)
             .map((pushKey, i) => {
                 const obj = data[pushKey];
-                console.log(average[i], '+', obj[key[i]]);
+                // console.log(average[i], '+', obj[key[i]]);
                 average[i] += obj[key[i]];
             })
 
@@ -56,7 +71,7 @@ export default class RowItem extends Component {
             average[key[i]] /= data.length;
         });
 
-        console.log(average);
+        // console.log(average);
 
         const views = key.map((feeling, i) => {
             if (i >= NUM_FEELINGS) 
@@ -71,7 +86,13 @@ export default class RowItem extends Component {
                     justifyContent: 'flex-end',
                     alignItems: 'center'
                 }}>
-                    <View style={{alignSelf: 'center', width: 5, height: average[i] * 100, backgroundColor: Colors[key[i]]}}/>
+                    <View
+                        style={{
+                        alignSelf: 'center',
+                        width: 5,
+                        height: average[i] * 100,
+                        backgroundColor: Colors[key[i]]
+                    }}/>
                     <Text>{EMOJIS[i]}</Text>
                     <Text>{average[i].toFixed(2)}</Text>
                 </View>
@@ -79,9 +100,10 @@ export default class RowItem extends Component {
         })
 
         return (
-            <View style={{
-                    backgroundColor: '#FAFAFA',
-                    paddingVertical: 16, 
+            <View
+                style={{
+                backgroundColor: '#FAFAFA',
+                paddingVertical: 16
             }}>
                 <View
                     style={{
@@ -90,8 +112,48 @@ export default class RowItem extends Component {
                 }}>
                     {views}
                 </View>
+                <TouchableOpacity
+                    onPress={() => {
+                    this.setState({loading: true, activity: true, webviewload: true})
+                }}
+                    style={{
+                    alignItems: 'center',
+                    flexDirection: 'row',
+                    backgroundColor: 'white',
+                    marginTop: 8,
+                    padding: 16,
+                    margin: 8,
+                    borderRadius: 8,
+                    borderWidth: 1
+                }}>
+                    <Image
+                        style={{
+                        width: 24,
+                        height: 24,
+                        marginRight: 8
+                    }}
+                        source={require('../assets/images/chart.png')}/>
+                    <Text style={{
+                        fontWeight: '500'
+                    }}>Generate Health Chart</Text>
+                </TouchableOpacity>
             </View>
         )
+    }
+
+    renderWebView() {
+        if (!this.state.webviewload) 
+            return;
+        
+        return (<WebView
+            source={{
+            uri: 'https://www.dropbox.com/s/9d64g9gcywuqpmf/Psychological%20.pdf?dl=0&raw=true'
+        }}
+            style={{
+            width,
+            height
+        }}/>)
+
     }
 
     render() {
@@ -109,7 +171,7 @@ export default class RowItem extends Component {
                         width,
                         padding: 16,
                         borderBottomWidth: StyleSheet.hairlineWidth,
-                        borderBottomColor: '#eee',
+                        borderBottomColor: 'gray',
                         flexDirection: 'row',
                         justifyContent: 'space-between',
                         alignItems: 'center'
@@ -131,6 +193,25 @@ export default class RowItem extends Component {
 
                 </TouchableOpacity>
                 {this.renderViews()}
+                <Modal
+                    visible={this.state.loading}
+                    transparent={true}
+                    style={{
+                    flex: 1
+                }}>
+                    <View
+                        style={{
+                        flex: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        backgroundColor: 'rgba(0, 0, 0, .6)'
+                    }}>
+                        <TouchableOpacity onPress={() => this.setState({webviewload: false, loading: false})}>
+                            <Ionicons name='ios-close' color='white' size={40} style={{margin: 16}} />
+                        </TouchableOpacity>
+                        {this.renderWebView()}
+                    </View>
+                </Modal>
             </View>
         )
     }

@@ -3,15 +3,32 @@ import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import { AppLoading, Asset, Font } from 'expo';
 import { Ionicons } from '@expo/vector-icons';
 import RootNavigation from './navigation/RootNavigation';
+import * as firebase from 'firebase';
+import moment from 'moment';
 
 export default class App extends React.Component {
   state = {
     assetsAreLoaded: false,
   };
 
+  constructor() {
+    super();
+    
+    var config = {
+      apiKey: "AIzaSyCN-qoFr3Hrw20mU4wxiRQmRcTPGDFAYPc",
+      authDomain: "medhacks2017-b5d81.firebaseapp.com",
+      databaseURL: "https://medhacks2017-b5d81.firebaseio.com",
+      projectId: "medhacks2017-b5d81",
+      storageBucket: "medhacks2017-b5d81.appspot.com",
+      messagingSenderId: "646098283900"
+    };
+    firebase.initializeApp(config);
+  }
+
   componentWillMount() {
     this._loadAssetsAsync();
   }
+
 
   render() {
     if (!this.state.assetsAreLoaded && !this.props.skipLoadingScreen) {
